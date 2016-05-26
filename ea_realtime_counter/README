@@ -1,0 +1,14 @@
+扶翼storm版实时流程序
+
+注意事项：
+pom.xml中storm依赖的设置是针对远程执行环境的。
+
+	<dependency>
+      <groupId>storm</groupId>
+      <artifactId>storm</artifactId>
+      <version>0.9.0.1</version>
+      <scope>provided</scope>
+    </dependency>
+
+本地执行的话会报class not found错误。要把scope中provided改成compile（或者把这行删掉）。 
+see http://stackoverflow.com/questions/16903185/why-cant-i-run-the-example-from-storm-starter-using-this-command/16905073?noredirect=1#comment24400451_16904295
