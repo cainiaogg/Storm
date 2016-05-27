@@ -2,6 +2,8 @@ package com.sina.app.bolt;
 
 import java.util.Map;
 
+import com.sina.app.bolt.util.OperateTable;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,17 +20,19 @@ import com.sina.app.bolt.util.ParserUtil;
 
 public class ImpressionBolt implements IRichBolt {
 	private static final long serialVersionUID = 1L;
-	
+	private static final String tableName = "IC_LOG";
+	private static final String familyCloumn = "impressionLog";
 	private static final Logger LOG = LoggerFactory.getLogger(ImpressionBolt.class);
 	private OutputCollector collector;
-	
+	private static final String[] tableFamily ={
+			"clickLog",
+			"impressionLog",
+	};
 	public ImpressionBolt() {
 	}
 
 	@Override
 	public void declareOutputFields(OutputFieldsDeclarer declarer) {
-		declarer.declare(new Fields("adtype", "stattype", "psid", "infos",
-				"order", "isClick", "timestamp"));
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -37,66 +41,37 @@ public class ImpressionBolt implements IRichBolt {
 			OutputCollector collector) {
 		this.collector = collector;
 	}
+	public void writeToHbase(ImpressionLog log){
+		OperateTable impressionTable = new OperateTable();
+		try {
+			impressionTable.createTable(tableName, tableFamily);
+		}catch(Exception e){
+			LOG.error("createTable error{}",e);
+		}
+		for(int i = 0;i<log.impressionLength;i++) {
+			try {
+				impressionTable.addRow(tableName, log.uuid, familyCloumn, log.strLog[i], log.logValue[i]);
+			}catch(Exception e){
+				LOG.error("addRow error:{}",e);
+			}
+		}
+	}
 
 	@Override
 	public void execute(Tuple input) {
 		String entry = new String((byte[]) input.getValue(0));
-		process(entry);
+		String[] impressionLogs = StringUtils.split(entry, '\n');
+
+		for (String oneLog: impressionLogs) {
+			ImpressionLog log = new ImpressionLog(oneLog);
+			if (!log.isValid) {
+				LOG.error("Wrong format of log: {}", oneLog);
+				continue;
+			}
+			writeToHbase(log);
+		}
 		collector.ack(input);
 	}
-	
-	private void process(String entry) {
-		ImpressionLog log = new ImpressionLog(entry);
-		if (!log.isValid) {
-			LOG.error("Wrong format of log: {}", entry);
-			return;
-		}
-
-		if (log.order == null) {
-			// LOG.error("Could not get order: {}", log.algoExtField);
-			return;
-		}
-		
-		// check platform type and idea type
-		String adtype = ParserUtil.formatAdtype(log.platType, log.ideaType);
-		if (adtype == null) {
-			LOG.error("Invalid platType/ideaType: " + log.platType + "/" + log.ideaType);
-			return;
-		}
-		
-		// emit intermediate data
-		emitData(adtype, log.psid, log);
-		// emit for multi-channel positions
-		if (log.channel != null) {
-			emitData(adtype, log.psid + "+" + log.channel, log);
-		}
-
-	}
-
-	private void emitData(String adtype, String psid, ImpressionLog log) {
-
-		collector.emit(
-				new Values(adtype, ParserUtil.STAT_TYPE_PSID,
-						psid, "",
-						log.order, 0, log.time));
-		collector.emit(
-				new Values(adtype, ParserUtil.STAT_TYPE_PSID_LINEITEM,
-						psid, log.lineitem,
-						log.order, 0, log.time));
-		collector.emit(
-				new Values(adtype, ParserUtil.STAT_TYPE_PSID_IDEA,
-						psid, log.creative,
-						log.order, 0, log.time));
-		collector.emit(
-				new Values(adtype, ParserUtil.STAT_TYPE_PSID_GROUP,
-						psid, log.group,
-						log.order, 0, log.time));
-		collector.emit(
-				new Values(adtype, ParserUtil.STAT_TYPE_PSID_CUST,
-						psid, log.customer,
-						log.order, 0, log.time));
-	}
-
 	@Override
 	public void cleanup() {
 	}

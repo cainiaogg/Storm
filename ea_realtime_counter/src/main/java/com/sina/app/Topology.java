@@ -1,5 +1,4 @@
 package com.sina.app;
-
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Enumeration;
@@ -8,12 +7,9 @@ import java.util.Properties;
 import backtype.storm.Config;
 import backtype.storm.StormSubmitter;
 import backtype.storm.topology.TopologyBuilder;
-import backtype.storm.tuple.Fields;
 
 import com.sina.app.bolt.ClickBolt;
 import com.sina.app.bolt.ImpressionBolt;
-import com.sina.app.bolt.IntervalCountBolt;
-import com.sina.app.bolt.OutputBolt;
 import com.sina.app.metric.OutputMetricsConsumer;
 import com.sina.app.spout.KafkaSpout;
 import com.sina.app.util.Constant;
