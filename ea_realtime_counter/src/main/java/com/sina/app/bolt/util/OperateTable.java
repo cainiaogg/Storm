@@ -19,6 +19,9 @@ public class OperateTable {
     static{
         conf.set("hbase.zookeeper.property.clientPort","2181");
     }
+    public OperateTable(){
+
+    }
     public static void createTable(String tableName,String [] columnFamilys)throws Exception{
         HBaseAdmin hAdmin = new HBaseAdmin(conf);
         if(hAdmin.tableExists(tableName)){

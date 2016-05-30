@@ -22,16 +22,21 @@ import com.sina.app.bolt.util.ParserUtil;
 public class ClickBolt implements IRichBolt {
 
 	private static final long serialVersionUID = 1L;
-	private static final String tableName = "IC_LOG";
-	private static final String familyCloumn = "clickLog";
+	private static final String tableName = "sinaad_rtlabel";
+	private static final String tableCloumn = "logclk";
 	private static final String[] tableFamily ={
-			"clickLog",
-			"impressionLog",
+			"cf"
 	};
 	private static final Logger LOG = LoggerFactory.getLogger(ClickBolt.class);
 	private OutputCollector collector;
-	
+	public OperateTable clickTable;
+
 	public ClickBolt() {
+		try {
+			clickTable.createTable(tableName, tableFamily);
+		}catch(Exception e){
+			LOG.error("createTable error{}",e);
+		}
 	}
 
 	@Override
@@ -45,18 +50,10 @@ public class ClickBolt implements IRichBolt {
 		this.collector = collector;
 	}
 	public void writeToHbase(ClickLog log){
-		OperateTable clickTable = new OperateTable();
-		try {
-			clickTable.createTable(tableName, tableFamily);
-		}catch(Exception e){
-			LOG.error("createTable error{}",e);
-		}
-		for(int i = 0;i<log.clickLength;i++) {
-			try {
-				clickTable.addRow(tableName, log.uuid, familyCloumn, log.strLog[i], log.logValue[i]);
-			}catch(Exception e){
-				LOG.error("addRow error:{}",e);
-			}
+		try{
+			clickTable.addRow(tableName,log.uuid,tableFamily[0],tableCloumn,log.logclkVal);
+		}catch (Exception e){
+			LOG.error("addRow error:{}",e);
 		}
 	}
 	@Override

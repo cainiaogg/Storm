@@ -20,15 +20,20 @@ import com.sina.app.bolt.util.ParserUtil;
 
 public class ImpressionBolt implements IRichBolt {
 	private static final long serialVersionUID = 1L;
-	private static final String tableName = "IC_LOG";
-	private static final String familyCloumn = "impressionLog";
+	private static final String tableName = "sinaad_rtlabel";
+	private static final String tableCloumn = "logpv";
 	private static final Logger LOG = LoggerFactory.getLogger(ImpressionBolt.class);
 	private OutputCollector collector;
+	public OperateTable impressionTable;
 	private static final String[] tableFamily ={
-			"clickLog",
-			"impressionLog",
+			"cf",
 	};
 	public ImpressionBolt() {
+		try{
+			impressionTable.createTable(tableName,tableFamily);
+		}catch(Exception e){
+			LOG.error("createTable error{}",e);
+		}
 	}
 
 	@Override
@@ -42,18 +47,10 @@ public class ImpressionBolt implements IRichBolt {
 		this.collector = collector;
 	}
 	public void writeToHbase(ImpressionLog log){
-		OperateTable impressionTable = new OperateTable();
-		try {
-			impressionTable.createTable(tableName, tableFamily);
+		try{
+			impressionTable.addRow(tableName,log.uuid,tableFamily[0],tableCloumn,log.logpvVal);
 		}catch(Exception e){
-			LOG.error("createTable error{}",e);
-		}
-		for(int i = 0;i<log.impressionLength;i++) {
-			try {
-				impressionTable.addRow(tableName, log.uuid, familyCloumn, log.strLog[i], log.logValue[i]);
-			}catch(Exception e){
-				LOG.error("addRow error:{}",e);
-			}
+			LOG.error("addRow error{}",e);
 		}
 	}
 

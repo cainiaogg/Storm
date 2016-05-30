@@ -5,26 +5,14 @@ package com.sina.app.bolt;
  */
 import java.io.IOException;
 import com.sina.app.bolt.OperateTable;
+import org.xerial.snappy.Snappy;
+import org.xerial.snappy.SnappyError;
 public class HbaseTest {
-
-    public static void main(String[] args) throws IOException {
-        String[] columnFamilys = {"info","course"};
+    public static void main(String[] args) throws Exception{
         OperateTable table = new OperateTable();
-        try {
-            table.addRow("user2", "1", "info", "info1", "1");
-            table.addRow("user2","1","info","info2","2");
-            table.addRow("user2","1","course","course1","1");
-            table.getRow("user2","1");
-        }catch (Exception e){
-            System.out.println(e);
-        }
-
-//        String tableName = "user2";
-//        try{
-//            createTable(tableName,columnFamilys);
-//        }catch(Exception e){
-//            System.out.println("创建失败");
-//        }
+        String [] s = {
+                "info","info1",
+        };
+        table.createTable("user5",s);
     }
-
 }
