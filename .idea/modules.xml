@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/Storm.iml" filepath="$PROJECT_DIR$/.idea/Storm.iml" />
+      <module fileurl="file://$PROJECT_DIR$/adalgo_ea_rts.iml" filepath="$PROJECT_DIR$/adalgo_ea_rts.iml" />
     </modules>
   </component>
 </project>
