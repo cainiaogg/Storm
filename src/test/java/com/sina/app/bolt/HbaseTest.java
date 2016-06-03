@@ -16,30 +16,22 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import com.sina.app.bolt.OperateTable;
+import org.apache.hadoop.ipc.UnexpectedServerException;
 import org.xerial.snappy.Snappy;
 import org.xerial.snappy.SnappyError;
-class gao implements Runnable{
-    public gao(){
 
-    }
-    public void run(){
-        try{
-            while(true){
-                System.out.println("jijij");
-                Thread.sleep(5000);
-            }
-        }catch(InterruptedException e){
-            System.out.println(e);
-        }
-    }
-}
-public class HbaseTest{
-
-    public static void main(String[] args){
-        ExecutorService service = Executors.newFixedThreadPool(2);
-        HbaseTest a = new HbaseTest();
-        gao tt = new gao();
-        service.submit(tt);
-        System.out.println("nihao");
+import javax.security.auth.Subject;
+import javax.security.auth.callback.Callback;
+import javax.security.auth.callback.CallbackHandler;
+import javax.security.auth.login.LoginContext;
+import javax.security.auth.login.LoginException;
+import com.sun.security.auth.callback.TextCallbackHandler;
+import java.io.File;
+import javax.security.auth.Subject;
+import java.security.PrivilegedAction;
+public class HbaseTest {
+    public static void main(String [] args){
+        String relativelyPath=System.getProperty("user.dir");
+        System.out.println(relativelyPath);
     }
 }

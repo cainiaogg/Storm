@@ -1,6 +1,7 @@
 package com.sina.app.bolt.util;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.HColumnDescriptor;
 import org.apache.hadoop.hbase.HTableDescriptor;
@@ -18,12 +19,16 @@ import static org.apache.hadoop.fs.FileSystem.LOG;
  * Created by jingwei on 16/5/27.
  */
 public class OperateTable{
-    private static Configuration conf = HBaseConfiguration.create();
+    private static Configuration conf;
     private static String tableName = "sinaad_rtlabel";
     public HTable table;
     static{
-        conf.set("hbase.zookeeper.quorum", "127.0.0.1");
-        conf.set("hbase.zookeeper.property.clientPort","2181");
+        String relativelyPath=System.getProperty("user.dir");
+        String filePath = relativelyPath+"/hbase-site.xml";
+        Path path = new Path(filePath);
+        conf = new Configuration();
+        conf.addResource(path);
+        conf = HBaseConfiguration.create(conf);
     }
     public OperateTable(){
         try {

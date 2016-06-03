@@ -1,6 +1,5 @@
 package com.sina.app.bolt.util;
 
-import com.sun.tools.classfile.ConstantPool;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.util.Bytes;
 
@@ -10,7 +9,6 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
 
 import static org.apache.hadoop.fs.FileContext.LOG;
-import static sun.jvm.hotspot.runtime.BasicObjectLock.size;
 
 /**
  * Created by jingwei on 16/6/1.
@@ -18,8 +16,6 @@ import static sun.jvm.hotspot.runtime.BasicObjectLock.size;
 class Pair{
     public String row;
     public String val;
-    public Pair(){
-    }
     public Pair(String row,String val){
         this.row = row;
         this.val = val;
