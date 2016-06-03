@@ -20,7 +20,7 @@ import static org.apache.hadoop.fs.FileSystem.LOG;
  */
 public class OperateTable{
     private static Configuration conf;
-    private static String tableName = "sinaad_rtlabel";
+    private static String tableName = "ns_hero:sinaad_rtlabel";
     public HTable table;
     static{
         String relativelyPath=System.getProperty("user.dir");

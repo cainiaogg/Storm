@@ -31,7 +31,11 @@ import javax.security.auth.Subject;
 import java.security.PrivilegedAction;
 public class HbaseTest {
     public static void main(String [] args){
-        String relativelyPath=System.getProperty("user.dir");
-        System.out.println(relativelyPath);
+        OperateTable table = new OperateTable();
+        try{
+            table.scanTables();
+        }catch (Exception e){
+            System.out.println(e);
+        }
     }
 }

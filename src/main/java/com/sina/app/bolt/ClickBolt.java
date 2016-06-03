@@ -1,12 +1,15 @@
 package com.sina.app.bolt;
 
+import java.security.PrivilegedExceptionAction;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import com.sina.app.bolt.util.ClickLog;
+import com.sina.app.bolt.util.OperateTable;
 import com.sina.app.bolt.util.writeToHbase;
 import org.apache.commons.lang.StringUtils;
+import org.apache.hadoop.security.UserGroupInformation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,9 +36,20 @@ public class ClickBolt implements IRichBolt {
 	@Override
 	public void prepare(Map stormConf, TopologyContext context,
 						OutputCollector collector) {
-		write = new writeToHbase("logclk");
-		ExecutorService service = Executors.newFixedThreadPool(2);
-		service.submit(write.consumer);
+		Object ret = null;
+		try{
+			ret = UserGroupInformation.createRemoteUser("hero").doAs(new PrivilegedExceptionAction<Object>() {
+				@Override
+				public Object run() throws Exception{
+					write = new writeToHbase("logclk");
+					ExecutorService service = Executors.newFixedThreadPool(2);
+					service.submit(write.consumer);
+					return null;
+				}
+			});
+		}catch(Exception e){
+			LOG.error("send userImf error {}",e);
+		}
 		this.collector = collector;
 	}
 	@Override

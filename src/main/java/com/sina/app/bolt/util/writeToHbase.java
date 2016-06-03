@@ -21,6 +21,7 @@ class Pair{
         this.val = val;
     }
 }
+
 public class writeToHbase extends FormatLog{
     public String tableColumn;
     private OperateTable table;
@@ -31,6 +32,7 @@ public class writeToHbase extends FormatLog{
         this.tableColumn = tableCloumn;
         consumer = new Consumer();
         table = new OperateTable();
+
         buffer = new LinkedBlockingDeque<Pair>(bufferLen);
         writeList = new ArrayList<Pair>();
     }

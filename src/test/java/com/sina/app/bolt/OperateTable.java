@@ -17,7 +17,15 @@ import java.util.List;
 public class OperateTable {
     private static Configuration conf = HBaseConfiguration.create();
     static{
-        conf.set("hbase.zookeeper.property.clientPort","2181");
+        conf.set("hbase.zookeeper.quorum","10.39.6.87");
+    }
+    public static void scanTables() throws Exception{
+        HBaseAdmin hAdmin = new HBaseAdmin(conf);
+        HTableDescriptor []hTableDescriptor= hAdmin.listTables();
+        for(HTableDescriptor tmp:hTableDescriptor){
+            System.out.println(tmp.getNameAsString());
+        }
+
     }
     public static int createTable(String tableName,String [] columnFamilys)throws Exception{
         HBaseAdmin hAdmin = new HBaseAdmin(conf);
