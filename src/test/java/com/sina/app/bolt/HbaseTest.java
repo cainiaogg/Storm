@@ -29,11 +29,18 @@ import com.sun.security.auth.callback.TextCallbackHandler;
 import java.io.File;
 import javax.security.auth.Subject;
 import java.security.PrivilegedAction;
+
+import static org.apache.hadoop.yarn.webapp.hamlet.HamletSpec.Method.get;
+
 public class HbaseTest {
-    public static void main(String [] args){
-        OperateTable table = new OperateTable();
+    public static void main(String [] args) throws Exception{
+        OperateTable ss = new OperateTable();
+        HTable table = new HTable(ss.conf,"sinaad_rtlabel");
+        Get get = new Get(Bytes.toBytes("gao"));
+        get.addColumn(Bytes.toBytes("cf"),Bytes.toBytes("logpv"));
         try{
-            table.scanTables();
+            Result result= table.get(get);
+            if(result.isEmpty()) System.out.println("jiji");
         }catch (Exception e){
             System.out.println(e);
         }

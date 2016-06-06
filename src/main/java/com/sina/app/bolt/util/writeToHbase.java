@@ -1,6 +1,9 @@
 package com.sina.app.bolt.util;
 
+import org.apache.hadoop.hbase.KeyValue;
+import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.Put;
+import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
 
 import java.util.ArrayList;
@@ -28,11 +31,12 @@ public class writeToHbase extends FormatLog{
     public BlockingQueue<Pair> buffer;
     public List<Pair>  writeList;
     public Consumer consumer;
+    public KafkaClient kafkaClient;
     public writeToHbase(String tableCloumn){
         this.tableColumn = tableCloumn;
+        kafkaClient =  new KafkaClient(brokerList,sampleTopic);
         consumer = new Consumer();
         table = new OperateTable();
-
         buffer = new LinkedBlockingDeque<Pair>(bufferLen);
         writeList = new ArrayList<Pair>();
     }
@@ -42,6 +46,26 @@ public class writeToHbase extends FormatLog{
         System.out.println("*********************");
         List<Put> putList = new ArrayList<Put>();
         for(Pair tmp:writeList){
+            if(tableColumn == "logclk"){
+                Get get = new Get(Bytes.toBytes(tmp.row));
+                get.addColumn(Bytes.toBytes(tableFamily),Bytes.toBytes("logpv"));
+                try{
+                    Result result = table.table.get(get);
+                    String pv = "";
+                    for(KeyValue kv:result.list()){
+                        pv = new String(kv.getValue());
+                    }
+                    if(result.isEmpty()) continue;
+                    else{
+                        pv = pv + "\t$" + tmp.val;
+                        kafkaClient.send(Bytes.toBytes(pv));
+                    }
+                }catch(Exception e){
+                    LOG.error("get from hbase error {}",e);
+                }
+            }
+            else
+            kafkaClient.send(Bytes.toBytes(tmp.val));
             Put put = new Put(Bytes.toBytes(tmp.row));
             put.add(Bytes.toBytes(tableFamily),Bytes.toBytes(tableColumn),Bytes.toBytes(tmp.val));
             putList.add(put);

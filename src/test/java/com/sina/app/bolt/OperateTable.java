@@ -15,9 +15,9 @@ import java.util.List;
  * Created by jingwei on 16/5/27.
  */
 public class OperateTable {
-    private static Configuration conf = HBaseConfiguration.create();
+    public static Configuration conf = HBaseConfiguration.create();
     static{
-        conf.set("hbase.zookeeper.quorum","10.39.6.87");
+        conf.set("hbase.zookeeper.quorum","127.0.0.1");
     }
     public static void scanTables() throws Exception{
         HBaseAdmin hAdmin = new HBaseAdmin(conf);
