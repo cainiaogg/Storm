@@ -19,22 +19,19 @@ import static org.apache.hadoop.fs.FileContext.LOG;
 class Pair{
     public String row;
     public String val;
-    public String timeSign;
-    public Pair(String row,String val,String timeSign){
+    public Pair(String row,String val){
         this.row = row;
         this.val = val;
-        this.timeSign = timeSign;
     }
 }
 
 public class writeToHbase extends FormatLog{
     public String tableColumn;
-    public OperateTable table;
+    private OperateTable table;
     public BlockingQueue<Pair> buffer;
     public List<Pair>  writeList;
     public Consumer consumer;
     public KafkaClient kafkaClient;
-    public TimeSign timeSign;
     public writeToHbase(String tableCloumn){
         this.tableColumn = tableCloumn;
         kafkaClient =  new KafkaClient(brokerList,sampleTopic);
@@ -42,26 +39,45 @@ public class writeToHbase extends FormatLog{
         table = new OperateTable();
         buffer = new LinkedBlockingDeque<Pair>(bufferLen);
         writeList = new ArrayList<Pair>();
-        timeSign = new TimeSign();
     }
     public void batchWrite(){
+        System.out.println("*********************");
+        System.out.println(buffer.size());
+        System.out.println("*********************");
         List<Put> putList = new ArrayList<Put>();
-        String tmpTime = new String(writeList.get(writeList.size() - 1).timeSign);
         for(Pair tmp:writeList){
+            if(tableColumn == "logclk"){
+                Get get = new Get(Bytes.toBytes(tmp.row));
+                get.addColumn(Bytes.toBytes(tableFamily),Bytes.toBytes("logpv"));
+                try{
+                    Result result = table.table.get(get);
+                    String pv = "";
+                    for(KeyValue kv:result.list()){
+                        pv = new String(kv.getValue());
+                    }
+                    if(result.isEmpty()) continue;
+                    else{
+                        pv = pv + "\t$" + tmp.val;
+                        kafkaClient.send(Bytes.toBytes(pv));
+                    }
+                }catch(Exception e){
+                    LOG.error("get from hbase error {}",e);
+                }
+            }
+            else
+            kafkaClient.send(Bytes.toBytes(tmp.val));
             Put put = new Put(Bytes.toBytes(tmp.row));
             put.add(Bytes.toBytes(tableFamily),Bytes.toBytes(tableColumn),Bytes.toBytes(tmp.val));
             putList.add(put);
         }
         try {
             table.addRows(putList);
-            if(tableColumn == "logpv")
-            timeSign.timeSign = tmpTime;
         }catch(Exception e){
             LOG.error("addRows error of {}",e);
         }
     }
-    public void produce(String row ,String val,String timeSign) throws InterruptedException{
-        Pair pair = new Pair(row,val,timeSign);
+    public void produce(String row ,String val) throws InterruptedException{
+        Pair pair = new Pair(row,val);
         buffer.put(pair);
     }
     public Pair consume() throws InterruptedException{

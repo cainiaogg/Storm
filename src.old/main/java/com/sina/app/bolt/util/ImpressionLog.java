@@ -8,7 +8,6 @@ public class ImpressionLog extends FormatLog{
     public String uuid;
     public String logpvVal;
     public String tableCloumn = "logpv";
-    public String timeSign;
     public ImpressionLog(String log) {
         String[] segs = StringUtils.splitPreserveAllTokens(log, '\t');
         if (segs.length < impressionLength) {
@@ -16,7 +15,6 @@ public class ImpressionLog extends FormatLog{
             return;
         }
         uuid = segs[5];
-        timeSign = segs[1];
         int valHash = getHash(uuid);
         if(valHash >= sampleCnt){
             isValid = false;

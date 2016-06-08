@@ -1,12 +1,13 @@
 package com.sina.app.bolt;
 
-import java.io.FileOutputStream;
 import java.security.PrivilegedExceptionAction;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import com.sina.app.bolt.util.*;
+import com.sina.app.bolt.util.ClickLog;
+import com.sina.app.bolt.util.OperateTable;
+import com.sina.app.bolt.util.writeToHbase;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.slf4j.Logger;
@@ -23,7 +24,7 @@ public class ClickBolt implements IRichBolt {
 	private static final long serialVersionUID = 1L;
 	private static final Logger LOG = LoggerFactory.getLogger(ClickBolt.class);
 	private OutputCollector collector;
-	private clkWriteToHbase write;
+	private writeToHbase write;
 	public ClickBolt() {
 	}
 
@@ -40,8 +41,8 @@ public class ClickBolt implements IRichBolt {
 			ret = UserGroupInformation.createRemoteUser("hero").doAs(new PrivilegedExceptionAction<Object>() {
 				@Override
 				public Object run() throws Exception{
-					write = new clkWriteToHbase("logclk");
-					ExecutorService service = Executors.newFixedThreadPool(1);
+					write = new writeToHbase("logclk");
+					ExecutorService service = Executors.newFixedThreadPool(2);
 					service.submit(write.consumer);
 					return null;
 				}
@@ -61,14 +62,10 @@ public class ClickBolt implements IRichBolt {
 //				LOG.error("Wrong format of log: {}",oneLog);
 				continue;
 			}
-			while(true){
-				TimeSign timeSign = new TimeSign();
-				if(log.timeSign.compareTo(timeSign.timeSign) >= 0) break;
-			}
 			try {
-				write.produce(log.uuid, log.logclkVal, log.timeSign);
-			}catch(Exception e){
-				LOG.error("click produce error {}",e);
+				write.produce(log.uuid, log.logclkVal);
+			}catch(InterruptedException e){
+				LOG.error("produce error{}",e);
 			}
 		}
 		collector.ack(input);

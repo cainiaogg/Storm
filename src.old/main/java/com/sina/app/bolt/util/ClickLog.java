@@ -7,7 +7,6 @@ public class ClickLog extends FormatLog{
 	public boolean isValid = true;
 	public String uuid;
 	public String logclkVal;
-	public String timeSign;
 	public static final String tableCloumn = "logclk"; //lie
 	public ClickLog(String log) {
 		String[] segs = StringUtils.splitPreserveAllTokens(log, '\t');
@@ -15,7 +14,6 @@ public class ClickLog extends FormatLog{
 			isValid = false;
 			return;
 		}
-		timeSign = segs[1];
 		uuid = segs[3];
 		int valHash = getHash(uuid);
 		if(valHash >= sampleCnt) {

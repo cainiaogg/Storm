@@ -82,7 +82,6 @@ public class OperateTable {
     public static void getRow(String tableName,String row) throws Exception{
         HTable table = new HTable(conf,tableName);
         Get get = new Get(Bytes.toBytes(row));
-        get.addColumn(Bytes.toBytes("cf"),Bytes.toBytes("log.pv"));
         Result result = table.get(get);
         for(KeyValue rowKV:result.raw()){
             System.out.println("row = "+new String(rowKV.getRow()));

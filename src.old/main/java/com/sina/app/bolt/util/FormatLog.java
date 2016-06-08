@@ -5,7 +5,7 @@ package com.sina.app.bolt.util;
  */
 public class FormatLog {
     public static final int hashMod = 100;
-    public static final String brokerList = "10.13.3.68:9092";
+    public static final String brokerList = "10.13.3.68:2181";
     public static final String sampleTopic = "sampleTopic";
     public static final int sampleCnt = 100; //chou yang
     public static final String tableFamily = "cf1"; //lie cu

@@ -1,5 +1,6 @@
 package com.sina.app.bolt;
 
+import java.io.FileOutputStream;
 import java.security.PrivilegedExceptionAction;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -41,7 +42,7 @@ public class ImpressionBolt implements IRichBolt {
 				@Override
 				public Object run() throws Exception{
 					write = new writeToHbase("logpv");
-					ExecutorService service = Executors.newFixedThreadPool(2);
+					ExecutorService service = Executors.newFixedThreadPool(1);
 					service.submit(write.consumer);
 					return null;
 				}
@@ -57,12 +58,13 @@ public class ImpressionBolt implements IRichBolt {
 		String [] impressionLogs = StringUtils.split(entry,"\n");
 		for(String oneLog:impressionLogs){
 			ImpressionLog log = new ImpressionLog(oneLog);
+
 			if(!log.isValid){
 //				LOG.error("Wrong format of log: {}",oneLog);
 				continue;
 			}
 			try {
-				write.produce(log.uuid, log.logpvVal);
+				write.produce(log.uuid, log.logpvVal,log.timeSign);
 			}catch(InterruptedException e){
 				LOG.error("produce error{}",e);
 			}
