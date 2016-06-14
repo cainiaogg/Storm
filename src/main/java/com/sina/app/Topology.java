@@ -20,14 +20,15 @@ public class Topology {
 	public static TopologyBuilder wireTopology(TopologyConfig topoConfig) {
 		TopologyBuilder builder = new TopologyBuilder();
 		builder.setSpout("clickSpout",
-				new KafkaSpout(topoConfig.kafkaClickTopic, topoConfig.KafkaClickGroup), 
+				new KafkaSpout(topoConfig.kafkaClickTopic, topoConfig.KafkaClickGroup),
 				topoConfig.clickSpoutNum);
+
 		builder.setSpout("impressionSpout",
 				new KafkaSpout(topoConfig.kafkaImpressionTopic, topoConfig.KafkaImpressionGroup), 
 				topoConfig.impressionSpoutNum);
-
 		builder.setBolt("impressionParseBolt", new ImpressionBolt(), topoConfig.impressionBoltNum)
 				.shuffleGrouping("impressionSpout");
+
 		builder.setBolt("clickParseBolt", new ClickBolt(), topoConfig.clickBoltNum)
 				.shuffleGrouping("clickSpout");
 

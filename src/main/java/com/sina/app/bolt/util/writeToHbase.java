@@ -7,6 +7,7 @@ import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -47,15 +48,15 @@ public class writeToHbase extends FormatLog{
     public void batchWrite(){
         List<Put> putList = new ArrayList<Put>();
         String tmpTime = new String(writeList.get(writeList.size() - 1).timeSign);
+        timeSign.updateTime(tmpTime);
         for(Pair tmp:writeList){
             Put put = new Put(Bytes.toBytes(tmp.row));
             put.add(Bytes.toBytes(tableFamily),Bytes.toBytes(tableColumn),Bytes.toBytes(tmp.val));
             putList.add(put);
+            kafkaClient.send(Bytes.toBytes(tmp.val));
         }
         try {
             table.addRows(putList);
-            if(tableColumn == "logpv")
-            timeSign.timeSign = tmpTime;
         }catch(Exception e){
             LOG.error("addRows error of {}",e);
         }
@@ -72,8 +73,10 @@ public class writeToHbase extends FormatLog{
         }
         public void run(){
             try{
+                Date lastTime = new Date();
                 while(true){
-                    if(writeList.size() >= cntBatch){
+                    Date nowTime = new Date();
+                    if(writeList.size() >= cntBatch && nowTime.getTime() - lastTime.getTime() > 1000){
                         batchWrite();
                         writeList.clear();
                     }

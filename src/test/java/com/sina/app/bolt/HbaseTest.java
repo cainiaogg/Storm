@@ -15,6 +15,7 @@ import org.apache.hadoop.hbase.util.Bytes;
  */
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -41,6 +42,7 @@ import kafka.producer.KeyedMessage;
 import kafka.producer.ProducerConfig;
 
 import static org.apache.hadoop.hbase.protobuf.ResponseConverter.LOG;
+import redis.clients.jedis.Jedis;
 
 /**
  * Created by jingwei on 16/6/6.
@@ -114,8 +116,8 @@ class KafkaConsumer{
 
 class gao{
     public static int a = 10;
-}
 
+}
 
 public class HbaseTest {
     public static void main(String [] args) throws Exception{
@@ -135,12 +137,22 @@ public class HbaseTest {
 //        }catch (Exception e){
 //            System.out.println(e);
 //        }
-        gao a = new gao();
-        a.a =11;
-        gao b =  new gao();
-        System.out.println(b.a);
+//        String [] str = {"123","23"};
+//        System.out.println(str.length);
+//        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+//        Date date = sdf.parse("2016-06-13 11:58:31.374");
+//        Date date1 = sdf.parse("2016-06-13 11:58:32");
+//        System.out.println((new Date()).getTime());
+//        System.out.println(new String(sdf.format(new Date())));
+//
+//        System.out.println(sdf.format(date1.getTime()+1000));
+        Jedis jedis;
+        jedis = new Jedis("10.210.228.84",6381);
+        jedis.set("test_jingwei","1");
+        System.out.println(jedis.get("test_jingwei"));
 
-        System.out.println(a.a);
+
+
 //        KafkaClient kafkaClient = new KafkaClient("10.13.3.68:9092","sampleTopic");
 //        kafkaClient.send(Bytes.toBytes("***************"));
 //        KafkaConsumer kafkaConsumer = new KafkaConsumer();

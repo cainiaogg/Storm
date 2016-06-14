@@ -35,6 +35,9 @@ public class KafkaClient {
         }
         return  false;
     }
+    public void reconnect(){
+
+    }
     public void destory(){
         producer.close();
     }

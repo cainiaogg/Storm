@@ -1,7 +1,9 @@
 package com.sina.app.bolt;
 
-import java.io.FileOutputStream;
 import java.security.PrivilegedExceptionAction;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -9,6 +11,7 @@ import java.util.concurrent.Executors;
 import com.sina.app.bolt.util.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.security.UserGroupInformation;
+import org.apache.hadoop.yarn.webapp.hamlet.HamletSpec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,7 +26,7 @@ public class ClickBolt implements IRichBolt {
 	private static final long serialVersionUID = 1L;
 	private static final Logger LOG = LoggerFactory.getLogger(ClickBolt.class);
 	private OutputCollector collector;
-	private clkWriteToHbase write;
+	private ClkWriteToHbase write;
 	public ClickBolt() {
 	}
 
@@ -40,7 +43,7 @@ public class ClickBolt implements IRichBolt {
 			ret = UserGroupInformation.createRemoteUser("hero").doAs(new PrivilegedExceptionAction<Object>() {
 				@Override
 				public Object run() throws Exception{
-					write = new clkWriteToHbase("logclk");
+					write = new ClkWriteToHbase("logclk");
 					ExecutorService service = Executors.newFixedThreadPool(1);
 					service.submit(write.consumer);
 					return null;
@@ -61,9 +64,26 @@ public class ClickBolt implements IRichBolt {
 //				LOG.error("Wrong format of log: {}",oneLog);
 				continue;
 			}
+			TimeSign timeSign = new TimeSign();
+			SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+			Date logDate;
+			try{
+				logDate = simpleDateFormat.parse(log.timeSign);
+			}catch(ParseException e){
+				LOG.error("ClickLog error{}", e);
+				continue;
+			}
 			while(true){
-				TimeSign timeSign = new TimeSign();
-				if(log.timeSign.compareTo(timeSign.timeSign) >= 0) break;
+				String redisTime = timeSign.getTime();
+				Date redisDate;
+				try {
+					redisDate = simpleDateFormat.parse(redisTime);
+				}catch(ParseException e){
+					LOG.error("get RedisTime error{}",e);
+					break;
+				}
+				if(redisDate.getTime()-logDate.getTime()>1000*300) break;
+
 			}
 			try {
 				write.produce(log.uuid, log.logclkVal, log.timeSign);
