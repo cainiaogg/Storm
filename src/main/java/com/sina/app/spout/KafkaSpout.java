@@ -89,7 +89,7 @@ public class KafkaSpout implements IRichSpout {
     protected void createConsumer(final Map<String, Object> config) {
         final Properties consumerConfig = createKafkaConfig(config);
         consumerConfig.put("group.id", this._consumer_group_id);
-
+        System.out.println(consumerConfig.getProperty("zookeeper.connect")+"JIJIJI");
         LOG.info("connecting kafka client to zookeeper at {} as client group {}",
             consumerConfig.getProperty("zookeeper.connect"),
             consumerConfig.getProperty("group.id"));

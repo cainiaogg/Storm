@@ -83,10 +83,10 @@ class KafkaConsumer{
         Properties props = new Properties();
         this.topic = topic;
         props.put("zookeeper.connect","10.13.3.68:2181/kafka-yanbing3");
-        props.put("group.id","jingwei_test");
+        props.put("group.id","jingwei_test3");
         props.put("zookeeper.session.timeout.ms","200");
         props.put("zookeeper.sync.time.ms","200");
-        props.put("auto.offset.reset", "smallest");
+//        props.put("auto.offset.reset", "smallest");
         props.put("serializer.class", "kafka.serializer.StringEncoder");
         ConsumerConfig config = new ConsumerConfig(props);
         consumer = kafka.consumer.Consumer.createJavaConsumerConnector(config);

@@ -57,7 +57,7 @@ public class ImpressionBolt implements IRichBolt {
 	}
 	@Override
 	public void execute(Tuple input){
-		String entry = new String(input.getValue(0).toString());
+		String entry = new String((byte[]) input.getValue(0));
 		String [] impressionLogs = StringUtils.split(entry,"\n");
 		for(String oneLog:impressionLogs){
 			ImpressionLog log = new ImpressionLog(oneLog);

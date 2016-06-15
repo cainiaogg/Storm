@@ -11,6 +11,7 @@ public class FormatLog {
     public static final int failClickParseBoltNum = 1;
     public static final int failClickToHbaseBoltNum = 1;
     public static final int failClickToKafkaBoltNum = 1;
+    public static final int impressionToKafkaBoltNum = 1;
 
     public static final String FaiKafkaSpoutZooKeeperList = "10.13.3.68:2181/kafka-yanbing3";
 

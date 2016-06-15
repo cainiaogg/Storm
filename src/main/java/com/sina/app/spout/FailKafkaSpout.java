@@ -23,14 +23,9 @@ import static com.sina.app.spout.util.ConfigUtils.createKafkaConfig;
 import static com.sina.app.spout.util.ConfigUtils.getMaxBufSize;
 import static com.sina.app.spout.util.ConfigUtils.getTopic;
 
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Queue;
-import java.util.SortedMap;
-import java.util.TreeMap;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 import com.sina.app.bolt.util.ClickLog;
 import com.sina.app.bolt.util.FormatLog;
@@ -177,7 +172,48 @@ public class FailKafkaSpout implements IRichSpout {
     public void deactivate() {
         _failHandler.deactivate();
     }
-
+    public boolean Delay(byte[] message){
+        String oneLog = new String(message);
+        ClickLog log = new ClickLog(oneLog);
+        if(!log.isValid){
+//				LOG.error("Wrong format of log: {}",oneLog);
+            return false;
+        }
+        TimeSign timeSign = new TimeSign();
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        Date logDate = new Date();
+        try{
+            logDate = simpleDateFormat.parse(log.timeSign);
+        }catch(ParseException e){
+            LOG.error("ClickLog error{}", e);
+            return false;
+        }
+        while(true){
+            String redisTime="";
+            try {
+                redisTime = timeSign.getTime();
+            }catch(Exception e){
+                LOG.error("error get redis Time{}",e);
+                return false;
+            }
+            Date redisDate = new Date();
+            try {
+                redisDate = simpleDateFormat.parse(redisTime);
+            }catch(ParseException e){
+                LOG.error("get RedisTime error{}",e);
+                return false;
+            }
+            Long delt = redisDate.getTime()-logDate.getTime();
+            if(delt>1000*60*60*24) break;
+            try {
+                Thread.sleep(1000*60*60*5);
+            }catch(InterruptedException e){
+                LOG.error("clklog sleep error{}",e);
+                return false;
+            }
+        }
+        return true;
+    }
     @Override
     public void nextTuple() {
         if (!_queue.isEmpty() || (_inProgress.isEmpty() && fillBuffer())) {
@@ -187,8 +223,10 @@ public class FailKafkaSpout implements IRichSpout {
                 if (message == null) {
                     throw new IllegalStateException("no pending message for next id " + nextId);
                 }
-                _collector.emit(new Values((Object) message), nextId);
-                LOG.debug("emitted kafka message id {} ({} bytes payload)", nextId, message.length);
+                if(Delay(message)){
+                    _collector.emit(new Values((Object) message), nextId);
+                    LOG.debug("emitted kafka message id {} ({} bytes payload)", nextId, message.length);
+                }
             }
         }
     }

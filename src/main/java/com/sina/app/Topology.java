@@ -11,6 +11,7 @@ import backtype.storm.topology.TopologyBuilder;
 import com.sina.app.bolt.*;
 import com.sina.app.bolt.util.FormatLog;
 import com.sina.app.metric.OutputMetricsConsumer;
+import com.sina.app.spout.ClkKafkaSpout;
 import com.sina.app.spout.FailKafkaSpout;
 import com.sina.app.spout.KafkaSpout;
 import com.sina.app.util.Constant;
@@ -28,11 +29,11 @@ public class Topology {
 				topoConfig.impressionSpoutNum);
 		builder.setBolt("impressionParseBolt", new ImpressionBolt(), topoConfig.impressionBoltNum)
 				.shuffleGrouping("impressionSpout");
-		builder.setBolt("impressionToKafkaBolt",new ToKafkaBolt(formatLog.brokerList,formatLog.pvTopic),1)
+		builder.setBolt("impressionToKafkaBolt",new ToKafkaBolt(formatLog.brokerList,formatLog.pvTopic),formatLog.impressionToKafkaBoltNum)
 				.shuffleGrouping("impressionParseBolt");
 
 		builder.setSpout("clickSpout",
-				new KafkaSpout(topoConfig.kafkaClickTopic, topoConfig.KafkaClickGroup),
+				new ClkKafkaSpout(topoConfig.kafkaClickTopic, topoConfig.KafkaClickGroup),
 				topoConfig.clickSpoutNum);
 		builder.setBolt("clickParseBolt", new ClickBolt(), topoConfig.clickBoltNum)
 				.shuffleGrouping("clickSpout");

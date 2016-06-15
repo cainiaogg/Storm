@@ -63,43 +63,6 @@ public class ClickBolt implements IRichBolt {
 		String [] clickLogs = StringUtils.split(entry,"\n");
 		for(String oneLog:clickLogs){
 			ClickLog log = new ClickLog(oneLog);
-			if(!log.isValid){
-//				LOG.error("Wrong format of log: {}",oneLog);
-				continue;
-			}
-			TimeSign timeSign = new TimeSign();
-			SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-			Date logDate = new Date();
-			try{
-				logDate = simpleDateFormat.parse(log.timeSign);
-			}catch(ParseException e){
-				LOG.error("ClickLog error{}", e);
-				continue;
-			}
-			while(true){
-				String redisTime="";
-				try {
-					redisTime = timeSign.getTime();
-				}catch(Exception e){
-					LOG.error("error get redis Time{}",e);
-					break;
-				}
-				Date redisDate = new Date();
-				try {
-					redisDate = simpleDateFormat.parse(redisTime);
-				}catch(ParseException e){
-					LOG.error("get RedisTime error{}",e);
-					break;
-				}
-				Long delt = redisDate.getTime()-logDate.getTime();
-				if(delt>1000*150) break;
-				try {
-					Thread.sleep(1000*50);
-				}catch(InterruptedException e){
-					LOG.error("clklog sleep error{}",e);
-				}
-
-			}
 			try {
 				boolean askExist = write.askExist(log.uuid,log.logclkVal,log.timeSign);
 				if(!askExist){
