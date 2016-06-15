@@ -78,8 +78,10 @@ class KafkaClient {
 
 class KafkaConsumer{
     private final ConsumerConnector consumer;
-    public KafkaConsumer(){
+    public String topic;
+    public KafkaConsumer(String topic){
         Properties props = new Properties();
+        this.topic = topic;
         props.put("zookeeper.connect","10.13.3.68:2181/kafka-yanbing3");
         props.put("group.id","jingwei_test");
         props.put("zookeeper.session.timeout.ms","200");
@@ -91,9 +93,9 @@ class KafkaConsumer{
     }
     void consume(){
         Map<String,Integer> topicCountMap = new HashMap<String, Integer>();
-        topicCountMap.put("sampleTopic", new Integer(1));
+        topicCountMap.put(topic, new Integer(1));
         Map<String, List<KafkaStream<byte[], byte[]>>>  messageStreams = consumer.createMessageStreams(topicCountMap);
-        KafkaStream<byte[], byte[]> stream = messageStreams.get("sampleTopic").get(0);// 获取每次接收到的这个数据
+        KafkaStream<byte[], byte[]> stream = messageStreams.get(topic).get(0);// 获取每次接收到的这个数据
         ConsumerIterator<byte[], byte[]> iterator =  stream.iterator();
         while(iterator.hasNext()){
             int flag = 0 ;
@@ -108,8 +110,8 @@ class KafkaConsumer{
                     break;
                 }
             }
-//            if(flag == 0)
-//            System.out.println("接收到pv: "+message);
+            if(flag == 0)
+            System.out.println("接收到pv: "+message);
         }
     }
 }
@@ -120,7 +122,7 @@ class gao{
 }
 
 public class HbaseTest {
-    public static void main(String [] args) throws Exception{
+    public static void main(String [] args) {
 //        FileOutputStream out = new FileOutputStream("/Users/jingwei/test/Storm/ea_realtime_counter/log",true);
 //        out.write("nihao".getBytes("utf-8"));
 //        out.close();
@@ -146,17 +148,17 @@ public class HbaseTest {
 //        System.out.println(new String(sdf.format(new Date())));
 //
 //        System.out.println(sdf.format(date1.getTime()+1000));
-        Jedis jedis;
-        jedis = new Jedis("10.210.228.84",6381);
-        jedis.set("test_jingwei","1");
-        System.out.println(jedis.get("test_jingwei"));
+//        Jedis jedis;
+//        jedis = new Jedis("10.210.228.84",6381);
+//        jedis.set("test_jingwei","1");
+//        System.out.println(jedis.get("test_jingwei"));
 
 
 
 //        KafkaClient kafkaClient = new KafkaClient("10.13.3.68:9092","sampleTopic");
 //        kafkaClient.send(Bytes.toBytes("***************"));
-//        KafkaConsumer kafkaConsumer = new KafkaConsumer();
-//        kafkaConsumer.consume();
+             KafkaConsumer kafkaConsumer = new KafkaConsumer("failTopic");
+             kafkaConsumer.consume();
         }
     }
 

@@ -33,6 +33,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 import com.sina.app.bolt.util.ClickLog;
+import com.sina.app.bolt.util.FormatLog;
 import com.sina.app.bolt.util.TimeSign;
 import org.apache.commons.exec.util.StringUtils;
 import org.apache.hadoop.mapreduce.tools.CLI;
@@ -57,24 +58,24 @@ import com.sina.app.spout.fail.FailHandler;
 import com.sina.app.spout.util.ConfigUtils;
 import com.sina.app.spout.util.KafkaMessageId;
 
-public class KafkaSpout implements IRichSpout {
+public class FailKafkaSpout implements IRichSpout {
     private static final long serialVersionUID = -1L;
     private static final Logger LOG = LoggerFactory.getLogger(KafkaSpout.class);
     protected final SortedMap<KafkaMessageId, byte[]> _inProgress = new TreeMap<KafkaMessageId, byte[]>();
     protected final Queue<KafkaMessageId> _queue = new LinkedList<KafkaMessageId>();
-    
+
     protected String _topic;
     protected String _consumer_group_id;
-    
+
     protected int _bufSize;
     protected FailHandler _failHandler;
     protected ConsumerIterator<byte[], byte[]> _iterator;
     protected transient SpoutOutputCollector _collector;
     protected transient ConsumerConnector _consumer;
 
-    public KafkaSpout(String topicName, String consumer_group) {
-    	this._topic = topicName;
-    	this._consumer_group_id = consumer_group;
+    public FailKafkaSpout(String topicName, String consumer_group) {
+        this._topic = topicName;
+        this._consumer_group_id = consumer_group;
     }
 
     protected void createFailHandler(final String failHandler) {
@@ -88,11 +89,14 @@ public class KafkaSpout implements IRichSpout {
 
     protected void createConsumer(final Map<String, Object> config) {
         final Properties consumerConfig = createKafkaConfig(config);
+        FormatLog formatLog = new FormatLog();
+        consumerConfig.put("zookeeper.connect",formatLog.FaiKafkaSpoutZooKeeperList);
+
         consumerConfig.put("group.id", this._consumer_group_id);
 
         LOG.info("connecting kafka client to zookeeper at {} as client group {}",
-            consumerConfig.getProperty("zookeeper.connect"),
-            consumerConfig.getProperty("group.id"));
+                consumerConfig.getProperty("zookeeper.connect"),
+                consumerConfig.getProperty("group.id"));
         _consumer = Consumer.createJavaConsumerConnector(new ConsumerConfig(consumerConfig));
     }
 

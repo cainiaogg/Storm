@@ -8,9 +8,10 @@ import backtype.storm.Config;
 import backtype.storm.StormSubmitter;
 import backtype.storm.topology.TopologyBuilder;
 
-import com.sina.app.bolt.ClickBolt;
-import com.sina.app.bolt.ImpressionBolt;
+import com.sina.app.bolt.*;
+import com.sina.app.bolt.util.FormatLog;
 import com.sina.app.metric.OutputMetricsConsumer;
+import com.sina.app.spout.FailKafkaSpout;
 import com.sina.app.spout.KafkaSpout;
 import com.sina.app.util.Constant;
 import com.sina.app.util.StormRunner;
@@ -18,19 +19,41 @@ import com.sina.app.util.StormRunner;
 public class Topology {
 	
 	public static TopologyBuilder wireTopology(TopologyConfig topoConfig) {
+		FormatLog formatLog = new FormatLog();
 		TopologyBuilder builder = new TopologyBuilder();
-		builder.setSpout("clickSpout",
-				new KafkaSpout(topoConfig.kafkaClickTopic, topoConfig.KafkaClickGroup),
-				topoConfig.clickSpoutNum);
+
 
 		builder.setSpout("impressionSpout",
 				new KafkaSpout(topoConfig.kafkaImpressionTopic, topoConfig.KafkaImpressionGroup), 
 				topoConfig.impressionSpoutNum);
 		builder.setBolt("impressionParseBolt", new ImpressionBolt(), topoConfig.impressionBoltNum)
 				.shuffleGrouping("impressionSpout");
+		builder.setBolt("impressionToKafkaBolt",new ToKafkaBolt(formatLog.brokerList,formatLog.pvTopic),1)
+				.shuffleGrouping("impressionParseBolt");
 
+		builder.setSpout("clickSpout",
+				new KafkaSpout(topoConfig.kafkaClickTopic, topoConfig.KafkaClickGroup),
+				topoConfig.clickSpoutNum);
 		builder.setBolt("clickParseBolt", new ClickBolt(), topoConfig.clickBoltNum)
 				.shuffleGrouping("clickSpout");
+		builder.setBolt("clickToHbaseBolt",new ClickToHbaseBolt(),formatLog.clickToHbaseBoltNum)
+				.shuffleGrouping("clickParseBolt","GETH");
+		builder.setBolt("clickToKafkaBolt",new ToKafkaBolt(formatLog.brokerList,formatLog.pvclkTopic),
+				formatLog.clickToKafkaBoltNum)
+				.shuffleGrouping("clickParseBolt","GETK");
+		builder.setBolt("clickFailToKafkaBolt",new ToKafkaBolt(formatLog.failbrokerList,formatLog.failTopic),formatLog.clickFailToKafkaBoltNum)
+				.shuffleGrouping("clickParseBolt","NOGET");
+
+		builder.setSpout("FailKafkaSpout",
+				new FailKafkaSpout(formatLog.failTopic,"test"),formatLog.FailKafkaSpoutNum);
+		builder.setBolt("failClickParseBolt",new FailClickParseBolt(),formatLog.failClickParseBoltNum)
+				.shuffleGrouping("FailKafkaSpout");
+		builder.setBolt("failClickToHbaseBolt",new ClickToHbaseBolt(),formatLog.failClickToHbaseBoltNum)
+				.shuffleGrouping("clickParseBolt","GETH");
+		builder.setBolt("failClickToKafkaBolt",new ToKafkaBolt(formatLog.brokerList,formatLog.pvclkTopic),formatLog.failClickToKafkaBoltNum)
+				.shuffleGrouping("clickParseBolt","GETK");
+
+
 
 //		builder.setBolt("intervalCountBolt", new IntervalCountBolt(topoConfig.intervalCountSeconds),
 //				topoConfig.intervalCountBoltNum)

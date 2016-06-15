@@ -4,8 +4,10 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.hbase.KeyValue;
 import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.Result;
+import org.apache.hadoop.hbase.protobuf.ResponseConverter;
 import org.apache.hadoop.hbase.util.Bytes;
 
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -59,4 +61,42 @@ public class ClickLog extends FormatLog{
 		}
 
 	}
+
+	/**
+     * Created by jingwei on 16/6/8.
+     */
+    public static class ClkWriteToHbase extends writeToHbase {
+        public ClkWriteToHbase(String tableColumn){
+            super(tableColumn);
+        }
+        public String pvFromHbase;
+        public boolean askExist(String row,String val,String timeSign) {
+            Get get = new Get(Bytes.toBytes(row));
+            get.addColumn(Bytes.toBytes(tableFamily), Bytes.toBytes("logpv"));
+            try {
+                Result result = table.table.get(get);
+                if (result.isEmpty()) return false;
+                for(KeyValue kv:result.list()){
+                    pvFromHbase = new String(kv.getValue());
+                }
+                return true;
+            } catch (IOException e) {
+                ResponseConverter.LOG.error("ask pv exist error {}", e);
+                return false;
+            }
+        }
+        public boolean askClk(String row,String val, String timeSign){
+            Get get = new Get(Bytes.toBytes(row));
+            get.addColumn(Bytes.toBytes(tableFamily),Bytes.toBytes("logclk"));
+            try{
+                Result result = table.table.get(get);
+                if(result.isEmpty()) return false;
+                return true;
+            }catch(IOException e){
+                ResponseConverter.LOG.error("ask clk exist error{}",e);
+                return false;
+            }
+        }
+
+    }
 }

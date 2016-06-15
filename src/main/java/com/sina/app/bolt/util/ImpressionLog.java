@@ -12,7 +12,6 @@ public class ImpressionLog extends FormatLog{
     public int impressionLength = 26;
     public String uuid;
     public String logpvVal;
-    public String tableCloumn = "logpv";
     public String timeSign;
     public ImpressionLog(String log) {
         String[] segs = StringUtils.splitPreserveAllTokens(log, '\t');

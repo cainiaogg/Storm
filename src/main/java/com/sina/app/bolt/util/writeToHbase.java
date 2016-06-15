@@ -38,7 +38,6 @@ public class writeToHbase extends FormatLog{
     public TimeSign timeSign;
     public writeToHbase(String tableCloumn){
         this.tableColumn = tableCloumn;
-        kafkaClient =  new KafkaClient(brokerList,sampleTopic);
         consumer = new Consumer();
         table = new OperateTable();
         buffer = new LinkedBlockingDeque<Pair>(bufferLen);
@@ -57,7 +56,6 @@ public class writeToHbase extends FormatLog{
             Put put = new Put(Bytes.toBytes(tmp.row));
             put.add(Bytes.toBytes(tableFamily),Bytes.toBytes(tableColumn),Bytes.toBytes(tmp.val));
             putList.add(put);
-            kafkaClient.send(Bytes.toBytes(tmp.val));
         }
         try {
             table.addRows(putList);

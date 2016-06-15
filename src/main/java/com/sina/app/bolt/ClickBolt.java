@@ -5,13 +5,12 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
+import backtype.storm.tuple.Fields;
+import backtype.storm.tuple.Values;
 import com.sina.app.bolt.util.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.security.UserGroupInformation;
-import org.apache.hadoop.yarn.webapp.hamlet.HamletSpec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,12 +25,16 @@ public class ClickBolt implements IRichBolt {
 	private static final long serialVersionUID = 1L;
 	private static final Logger LOG = LoggerFactory.getLogger(ClickBolt.class);
 	private OutputCollector collector;
-	private ClkWriteToHbase write;
+	private Thread writeThread;
+	private ClickLog.ClkWriteToHbase write;
 	public ClickBolt() {
 	}
 
 	@Override
 	public void declareOutputFields(OutputFieldsDeclarer declarer) {
+			declarer.declareStream("GETK",new Fields("toKafka"));
+			declarer.declareStream("GETH",new Fields("toHbase"));
+			declarer.declareStream("NOGET",new Fields("toKafka"));
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -43,9 +46,9 @@ public class ClickBolt implements IRichBolt {
 			ret = UserGroupInformation.createRemoteUser("hero").doAs(new PrivilegedExceptionAction<Object>() {
 				@Override
 				public Object run() throws Exception{
-					write = new ClkWriteToHbase("logclk");
-					ExecutorService service = Executors.newFixedThreadPool(1);
-					service.submit(write.consumer);
+					write = new ClickLog.ClkWriteToHbase("logclk");
+					writeThread = new Thread(write.consumer);
+					writeThread.start();
 					return null;
 				}
 			});
@@ -66,7 +69,7 @@ public class ClickBolt implements IRichBolt {
 			}
 			TimeSign timeSign = new TimeSign();
 			SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-			Date logDate;
+			Date logDate = new Date();
 			try{
 				logDate = simpleDateFormat.parse(log.timeSign);
 			}catch(ParseException e){
@@ -81,7 +84,7 @@ public class ClickBolt implements IRichBolt {
 					LOG.error("error get redis Time{}",e);
 					break;
 				}
-				Date redisDate;
+				Date redisDate = new Date();
 				try {
 					redisDate = simpleDateFormat.parse(redisTime);
 				}catch(ParseException e){
@@ -89,17 +92,25 @@ public class ClickBolt implements IRichBolt {
 					break;
 				}
 				Long delt = redisDate.getTime()-logDate.getTime();
-				if(delt>1000*300) break;
+				if(delt>1000*150) break;
 				try {
-					Thread.sleep(delt);
+					Thread.sleep(1000*50);
 				}catch(InterruptedException e){
 					LOG.error("clklog sleep error{}",e);
 				}
 
 			}
 			try {
-				write.produce(log.uuid, log.logclkVal, log.timeSign);
-				System.out.println("clk "+log.uuid+" "+log.timeSign);
+				boolean askExist = write.askExist(log.uuid,log.logclkVal,log.timeSign);
+				if(!askExist){
+					collector.emit("NOGET",new Values(oneLog));
+				}
+				else{
+					boolean askClk = write.askClk(log.uuid,log.logclkVal,log.timeSign);
+					if(askClk) continue;
+					collector.emit("GETK",new Values(write.pvFromHbase+"\t$\t"+log.logclkVal));
+					collector.emit("GETH",new Values(oneLog));
+				}
 			}catch(Exception e){
 				LOG.error("click produce error {}",e);
 			}
@@ -108,6 +119,11 @@ public class ClickBolt implements IRichBolt {
 	}
 	@Override
 	public void cleanup() {
+		try{
+			writeThread.join();
+		}catch(InterruptedException e){
+			LOG.error("write thread join error{}",e);
+		}
 	}
 
 	@Override

@@ -6,6 +6,8 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import backtype.storm.tuple.Fields;
+import backtype.storm.tuple.Values;
 import com.sina.app.bolt.util.writeToHbase;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.security.UserGroupInformation;
@@ -30,6 +32,7 @@ public class ImpressionBolt implements IRichBolt {
 
 	@Override
 	public void declareOutputFields(OutputFieldsDeclarer declarer) {
+		declarer.declare(new Fields("toKafka"));
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -54,7 +57,7 @@ public class ImpressionBolt implements IRichBolt {
 	}
 	@Override
 	public void execute(Tuple input){
-		String entry = new String((byte[]) input.getValue(0));
+		String entry = new String(input.getValue(0).toString());
 		String [] impressionLogs = StringUtils.split(entry,"\n");
 		for(String oneLog:impressionLogs){
 			ImpressionLog log = new ImpressionLog(oneLog);
@@ -65,7 +68,7 @@ public class ImpressionBolt implements IRichBolt {
 			}
 			try {
 				write.produce(log.uuid, log.logpvVal,log.timeSign);
-				System.out.println("p "+log.uuid + " "+log.timeSign);
+				collector.emit(new Values(oneLog));
 			}catch(InterruptedException e){
 				LOG.error("produce error{}",e);
 			}
