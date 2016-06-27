@@ -34,9 +34,9 @@ public class writeToHbase extends FormatLog{
     public BlockingQueue<Pair> buffer;
     public List<Pair>  writeList;
     public Consumer consumer;
-    public KafkaClient kafkaClient;
     public TimeSign timeSign;
     public boolean cleanUp;
+    public FormatLog formatLog = new FormatLog();
     public writeToHbase(String tableCloumn){
         cleanUp = true;
         this.tableColumn = tableCloumn;
@@ -76,7 +76,7 @@ public class writeToHbase extends FormatLog{
         Date last = new Date();
         while(true){
             Date now = new Date();
-            if(now.getTime() - last.getTime() > 1000) break;
+            if(now.getTime() - last.getTime() > formatLog.cleanWriteToHbaseTimeout) break;
             if(buffer.isEmpty()) break;
         }
         cleanUp = false;
@@ -89,7 +89,7 @@ public class writeToHbase extends FormatLog{
                 Date lastTime = new Date();
                 while(cleanUp){
                     Date nowTime = new Date();
-                    if(writeList.size() >= cntBatch && nowTime.getTime() - lastTime.getTime() > 1000){
+                    if(writeList.size() >= cntBatch && nowTime.getTime() - lastTime.getTime() > formatLog.batchWriteToHbaseTimeout){
                         batchWrite();
                         writeList.clear();
                     }

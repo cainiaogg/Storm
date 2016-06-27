@@ -27,6 +27,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+import com.sina.app.bolt.util.AskFromHbase;
 import com.sina.app.bolt.util.ClickLog;
 import com.sina.app.bolt.util.FormatLog;
 import com.sina.app.bolt.util.TimeSign;
@@ -85,6 +86,7 @@ public class ClkKafkaSpout implements IRichSpout {
     protected void createConsumer(final Map<String, Object> config) {
         final Properties consumerConfig = createKafkaConfig(config);
         FormatLog formatLog = new FormatLog();
+        consumerConfig.put("zookeeper.connect",formatLog.FaiKafkaSpoutZooKeeperList);
 
         consumerConfig.put("group.id", this._consumer_group_id);
 
@@ -128,7 +130,9 @@ public class ClkKafkaSpout implements IRichSpout {
 
     @Override
     public void declareOutputFields(final OutputFieldsDeclarer declarer) {
-        declarer.declare(new Fields("bytes"));
+        declarer.declareStream("GETK",new Fields("toKafka"));
+        declarer.declareStream("GETH",new Fields("toHbase"));
+        declarer.declareStream("NOGET",new Fields("toKafka"));
     }
 
     @Override
@@ -171,47 +175,73 @@ public class ClkKafkaSpout implements IRichSpout {
     public void deactivate() {
         _failHandler.deactivate();
     }
-    public boolean Delay(byte[] message){
-        String oneLog = new String(message);
-        ClickLog log = new ClickLog(oneLog);
-        if(!log.isValid){
-//				LOG.error("Wrong format of log: {}",oneLog);
-            return false;
-        }
-        TimeSign timeSign = new TimeSign();
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        Date logDate = new Date();
-        try{
-            logDate = simpleDateFormat.parse(log.timeSign);
-        }catch(ParseException e){
-            LOG.error("ClickLog error{}", e);
-            return false;
-        }
-        while(true){
-            String redisTime="";
-            try {
-                redisTime = timeSign.getTime();
-            }catch(Exception e){
-                LOG.error("error get redis Time{}",e);
-                return false;
+    public void Delay(byte[] message,final KafkaMessageId nextId){
+        String entry = new String(message);
+        AskFromHbase askFromHbase;
+        String[] clickLogs = StringUtils.split(entry,"\n");
+        for(String oneLog:clickLogs){
+            ClickLog log = new ClickLog(oneLog);
+            if(!log.isValid){
+                continue;
             }
-            Date redisDate = new Date();
-            try {
-                redisDate = simpleDateFormat.parse(redisTime);
+            TimeSign timeSign = new TimeSign();
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            Date logDate;
+            boolean Inserted = false;
+            try{
+                logDate = simpleDateFormat.parse(log.timeSign);
             }catch(ParseException e){
-                LOG.error("get RedisTime error{}",e);
-                return false;
+                LOG.error("ClickLog error{}", e);
+                continue;
             }
-            Long delt = redisDate.getTime()-logDate.getTime();
-            if(delt>1000*150) break;
-            try {
-                Thread.sleep(1000*50);
-            }catch(InterruptedException e){
-                LOG.error("clklog sleep error{}",e);
-                return false;
+            askFromHbase = new AskFromHbase(log.uuid,log.tableColumnPv);
+            boolean askPvExist = askFromHbase.askExist();
+            if(askPvExist){
+                _collector.emit("GETK",new Values(askFromHbase.clkWriteToHbase.pvFromHbase
+                        +"\t$\t"+log.logclkVal),nextId);
+                _collector.emit("GETH",new Values(oneLog),nextId);
+                continue;
             }
+            Date last = new Date();
+            while(true){
+                Date now = new Date();
+                if(now.getTime() - last.getTime() > log.secondAskHbaseTimeMax)
+                    break;
+                String redisTime="";
+                try {
+                    redisTime = timeSign.getTime();
+                }catch(Exception e){
+                    LOG.error("error get redis Time{}",e);
+                    break;
+                }
+                Date redisDate;
+                try {
+                    redisDate = simpleDateFormat.parse(redisTime);
+                }catch(ParseException e){
+                    LOG.error("get RedisTime error{}",e);
+                    break;
+                }
+                Long delt = redisDate.getTime()-logDate.getTime();
+                if(delt>log.secondAskHbaseTimeDlt) break;
+                try {
+                    Thread.sleep(log.secondAskHbaseSleepTime);
+                    askPvExist = askFromHbase.askExist();
+                    if(askPvExist){
+                        Inserted = true;
+                        _collector.emit("GETK",new Values(askFromHbase.clkWriteToHbase.pvFromHbase
+                                +"\t$\t"+log.logclkVal),nextId);
+                        _collector.emit("GETH",new Values(oneLog),nextId);
+                        break;
+                    }
+                }catch(InterruptedException e){
+                    LOG.error("clklog sleep error{}",e);
+                    break;
+                }
+
+            }
+            if(Inserted) continue;
+            _collector.emit("NOGET",new Values(oneLog),nextId);
         }
-        return true;
     }
     @Override
     public void nextTuple() {
@@ -222,10 +252,8 @@ public class ClkKafkaSpout implements IRichSpout {
                 if (message == null) {
                     throw new IllegalStateException("no pending message for next id " + nextId);
                 }
-                if(Delay(message)){
-                    _collector.emit(new Values((Object) message), nextId);
-                    LOG.debug("emitted kafka message id {} ({} bytes payload)", nextId, message.length);
-                }
+                Delay(message,nextId);
+                LOG.debug("emitted kafka message id {} ({} bytes payload)", nextId, message.length);
             }
         }
     }

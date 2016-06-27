@@ -19,6 +19,7 @@ import java.security.PrivilegedExceptionAction;
  */
 public class ClkWriteToHbase extends writeToHbase {
     public String row;
+    public String val;
     boolean isExist;
     public ClkWriteToHbase(String tableColumn) {
         super(tableColumn);
@@ -34,10 +35,7 @@ public class ClkWriteToHbase extends writeToHbase {
         get.addColumn(Bytes.toBytes(tableFamily), Bytes.toBytes(tableColumn));
         try {
             Result result = table.table.get(get);
-            if (result.isEmpty()) {
-                isExist = false;
-                return ;
-            }
+            if (result.isEmpty()) isExist = false;
             for(KeyValue kv:result.list()){
                 pvFromHbase = new String(kv.getValue());
             }

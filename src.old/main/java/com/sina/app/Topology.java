@@ -35,24 +35,20 @@ public class Topology {
 		builder.setSpout("clickSpout",
 				new ClkKafkaSpout(topoConfig.kafkaClickTopic, topoConfig.KafkaClickGroup),
 				topoConfig.clickSpoutNum);
-		builder.setBolt("clickParseBolt", new ClickBolt(), topoConfig.clickBoltNum)
-				.shuffleGrouping("clickSpout");
 		builder.setBolt("clickToHbaseBolt",new ClickToHbaseBolt(),formatLog.clickToHbaseBoltNum)
-				.shuffleGrouping("clickParseBolt","GETH");
+				.shuffleGrouping("clickSpout","GETH");
 		builder.setBolt("clickToKafkaBolt",new ToKafkaBolt(formatLog.brokerList,formatLog.pvclkTopic),
 				formatLog.clickToKafkaBoltNum)
-				.shuffleGrouping("clickParseBolt","GETK");
+				.shuffleGrouping("clickSpout","GETK");
 		builder.setBolt("clickFailToKafkaBolt",new ToKafkaBolt(formatLog.failbrokerList,formatLog.failTopic),formatLog.clickFailToKafkaBoltNum)
-				.shuffleGrouping("clickParseBolt","NOGET");
+				.shuffleGrouping("clickSpout","NOGET");
 
 		builder.setSpout("FailKafkaSpout",
 				new FailKafkaSpout(formatLog.failTopic,"test"),formatLog.FailKafkaSpoutNum);
-		builder.setBolt("failClickParseBolt",new FailClickParseBolt(),formatLog.failClickParseBoltNum)
-				.shuffleGrouping("FailKafkaSpout");
 		builder.setBolt("failClickToHbaseBolt",new ClickToHbaseBolt(),formatLog.failClickToHbaseBoltNum)
-				.shuffleGrouping("clickParseBolt","GETH");
+				.shuffleGrouping("FailKafkaSpout","GETH");
 		builder.setBolt("failClickToKafkaBolt",new ToKafkaBolt(formatLog.brokerList,formatLog.pvclkTopic),formatLog.failClickToKafkaBoltNum)
-				.shuffleGrouping("clickParseBolt","GETK");
+				.shuffleGrouping("FailKafkaSpout","GETK");
 
 
 

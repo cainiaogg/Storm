@@ -27,6 +27,7 @@ public class ImpressionBolt implements IRichBolt {
 	private static final Logger LOG = LoggerFactory.getLogger(ImpressionBolt.class);
 	private OutputCollector collector;
 	private writeToHbase write;
+	private Thread writeThread;
 	public ImpressionBolt() {
 	}
 
@@ -45,8 +46,8 @@ public class ImpressionBolt implements IRichBolt {
 				@Override
 				public Object run() throws Exception{
 					write = new writeToHbase("logpv");
-					ExecutorService service = Executors.newFixedThreadPool(1);
-					service.submit(write.consumer);
+					writeThread = new Thread(write.consumer);
+					writeThread.start();
 					return null;
 				}
 			});
@@ -77,6 +78,12 @@ public class ImpressionBolt implements IRichBolt {
 	}
 	@Override
 	public void cleanup() {
+		write.clean();
+		try{
+			writeThread.join();
+		}catch(InterruptedException e){
+			LOG.error("write thread join error{}",e);
+		}
 	}
 
 	@Override

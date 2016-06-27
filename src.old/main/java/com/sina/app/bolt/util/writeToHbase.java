@@ -36,7 +36,9 @@ public class writeToHbase extends FormatLog{
     public Consumer consumer;
     public KafkaClient kafkaClient;
     public TimeSign timeSign;
+    public boolean cleanUp;
     public writeToHbase(String tableCloumn){
+        cleanUp = true;
         this.tableColumn = tableCloumn;
         consumer = new Consumer();
         table = new OperateTable();
@@ -70,13 +72,22 @@ public class writeToHbase extends FormatLog{
     public Pair consume() throws InterruptedException{
         return buffer.take();
     }
+    public void clean(){
+        Date last = new Date();
+        while(true){
+            Date now = new Date();
+            if(now.getTime() - last.getTime() > 1000) break;
+            if(buffer.isEmpty()) break;
+        }
+        cleanUp = false;
+    }
     public class Consumer implements Runnable{
         public Consumer(){
         }
         public void run(){
             try{
                 Date lastTime = new Date();
-                while(true){
+                while(cleanUp){
                     Date nowTime = new Date();
                     if(writeList.size() >= cntBatch && nowTime.getTime() - lastTime.getTime() > 1000){
                         batchWrite();

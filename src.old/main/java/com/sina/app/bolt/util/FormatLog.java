@@ -16,6 +16,8 @@ public class FormatLog {
     public static final String FaiKafkaSpoutZooKeeperList = "10.13.3.68:2181/kafka-yanbing3";
 
     public static final int hashMod = 100;
+    public static final String tableColumnClk = "logclk";
+    public static final String tableColumnPv = "logpv";
     public static final String brokerList = "10.13.3.68:9092";
     public static final String failbrokerList = "10.13.3.68:9092";
     public static final String pvTopic = "pvTopic";
@@ -25,6 +27,14 @@ public class FormatLog {
     public static final String tableFamily = "cf1"; //lie cu
     public static final int cntBatch = 2000; // batch count
     public static final int bufferLen = 30000; //huan chong qu chang du
+
+    public static final int firstAskHbaseTimeMax = 1000*60;
+    public static final int firstAskHbaseTimeDlt = 1000*60*5;
+    public static final int firstAskHbaseSleepTime = 1000*2;
+    public static final int secondAskHbaseTimeMax = 1000*60;
+    public static final int secondAskHbaseTimeDlt = 1000*60*5;
+    public static final int secondAskHbaseSleepTime = 1000*2;
+
     public int getHash(String uuid){
         int valHash = 0;
         for(int i = 0;i < uuid.length();i++){

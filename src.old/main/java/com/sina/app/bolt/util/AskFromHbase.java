@@ -11,11 +11,9 @@ import static org.apache.hadoop.hbase.ipc.RpcClient.LOG;
  */
 public class AskFromHbase {
     public ClkWriteToHbase clkWriteToHbase;
-    public String row;
-    public String tableColumn;
     public AskFromHbase(String row,String tableColumn){
-        this.row =row;
-        this.tableColumn = tableColumn;
+        clkWriteToHbase = new ClkWriteToHbase(tableColumn);
+        clkWriteToHbase.setRowVal(row);
 
     }
     public boolean askExist(){
@@ -24,8 +22,6 @@ public class AskFromHbase {
             ret = UserGroupInformation.createRemoteUser("hero").doAs(new PrivilegedExceptionAction<Object>() {
                 @Override
                 public Object run() throws Exception{
-                    clkWriteToHbase = new ClkWriteToHbase(tableColumn);
-                    clkWriteToHbase.setRowVal(row);
                     clkWriteToHbase.askPv();
                     return null;
                 }

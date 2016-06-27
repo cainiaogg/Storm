@@ -6,6 +6,7 @@ import backtype.storm.topology.IRichBolt;
 import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.tuple.Tuple;
 import com.sina.app.bolt.util.ClickLog;
+import com.sina.app.bolt.util.FormatLog;
 import com.sina.app.bolt.util.writeToHbase;
 import org.apache.hadoop.security.UserGroupInformation;
 
@@ -14,6 +15,7 @@ import java.security.PrivilegedExceptionAction;
 
 import static org.apache.hadoop.hbase.ipc.RpcClient.LOG;
 
+import java.text.Normalizer;
 import java.util.Date;
 import java.util.Map;
 /**
@@ -23,6 +25,7 @@ public class ClickToHbaseBolt implements IRichBolt {
     private writeToHbase write;
     private Thread writeThread;
     private OutputCollector collector;
+    private FormatLog formatlog = new FormatLog();
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer){
     }
@@ -35,7 +38,7 @@ public class ClickToHbaseBolt implements IRichBolt {
             ret = UserGroupInformation.createRemoteUser("hero").doAs(new PrivilegedExceptionAction<Object>() {
                 @Override
                 public Object run() throws Exception{
-                    write = new writeToHbase("logclk");
+                    write = new writeToHbase(formatlog.tableColumnClk);
                     writeThread = new Thread(write.consumer);
                     writeThread.start();
                     return null;

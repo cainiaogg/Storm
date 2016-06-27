@@ -2,12 +2,14 @@ package com.sina.app.bolt;
 
 import java.io.FileOutputStream;
 import java.security.PrivilegedExceptionAction;
+import java.text.Normalizer;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Values;
+import com.sina.app.bolt.util.FormatLog;
 import com.sina.app.bolt.util.writeToHbase;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.security.UserGroupInformation;
@@ -28,6 +30,7 @@ public class ImpressionBolt implements IRichBolt {
 	private OutputCollector collector;
 	private writeToHbase write;
 	private Thread writeThread;
+	private FormatLog formatLog= new FormatLog();
 	public ImpressionBolt() {
 	}
 
@@ -45,7 +48,7 @@ public class ImpressionBolt implements IRichBolt {
 			ret = UserGroupInformation.createRemoteUser("hero").doAs(new PrivilegedExceptionAction<Object>() {
 				@Override
 				public Object run() throws Exception{
-					write = new writeToHbase("logpv");
+					write = new writeToHbase(formatLog.tableColumnPv);
 					writeThread = new Thread(write.consumer);
 					writeThread.start();
 					return null;

@@ -86,7 +86,7 @@ class KafkaConsumer{
         props.put("group.id","jingwei_test3");
         props.put("zookeeper.session.timeout.ms","200");
         props.put("zookeeper.sync.time.ms","200");
-//        props.put("auto.offset.reset", "smallest");
+        props.put("auto.offset.reset", "smallest");
         props.put("serializer.class", "kafka.serializer.StringEncoder");
         ConsumerConfig config = new ConsumerConfig(props);
         consumer = kafka.consumer.Consumer.createJavaConsumerConnector(config);
@@ -154,11 +154,12 @@ public class HbaseTest {
 //        System.out.println(jedis.get("test_jingwei"));
 
 
-
+            Date date = new Date();
+            System.out.println(date);
 //        KafkaClient kafkaClient = new KafkaClient("10.13.3.68:9092","sampleTopic");
 //        kafkaClient.send(Bytes.toBytes("***************"));
-             KafkaConsumer kafkaConsumer = new KafkaConsumer("failTopic");
-             kafkaConsumer.consume();
+//             KafkaConsumer kafkaConsumer = new KafkaConsumer("pvclkTopic");
+//             kafkaConsumer.consume();
         }
     }
 

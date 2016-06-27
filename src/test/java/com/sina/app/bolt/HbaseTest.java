@@ -34,6 +34,7 @@ import com.sun.security.auth.callback.TextCallbackHandler;
 import java.io.File;
 import javax.security.auth.Subject;
 import java.security.PrivilegedAction;
+import java.util.concurrent.RunnableFuture;
 
 import static org.apache.hadoop.yarn.webapp.hamlet.HamletSpec.Method.get;
 
@@ -43,6 +44,7 @@ import kafka.producer.ProducerConfig;
 
 import static org.apache.hadoop.hbase.protobuf.ResponseConverter.LOG;
 import redis.clients.jedis.Jedis;
+import scala.tools.nsc.Global;
 
 /**
  * Created by jingwei on 16/6/6.
@@ -51,6 +53,7 @@ class KafkaClient {
     private final Producer<String ,byte[]> producer;
     private final Properties props = new Properties();
     private final String topic;
+    public gao gao;
     public KafkaClient(String brokerList,String topic){
         props.put("metadata.broker.list",brokerList);
         props.put("key.serializer.class","kafka.serializer.StringEncoder");
@@ -58,6 +61,7 @@ class KafkaClient {
         props.put("request.required.acks", "1");
         producer = new Producer<String, byte[]>(new ProducerConfig(props));
         this.topic = topic;
+        gao = new gao();
     }
     public boolean send(byte[] message){
         try{
@@ -71,6 +75,20 @@ class KafkaClient {
         }
         return  false;
     }
+    public class gao implements  Runnable{
+        public gao(){}
+        public void run(){
+            try {
+                for (int i = 0; i < 3333; i++) {
+                    send(Bytes.toBytes("接收到pv: 2016-06-16 14:58:46.084\t119.250.54.117\t865175023446614\t338c59b3-f4db-4b1a-95a1-a7a5d6258af7\t469513\t5902015829_PINPAI-CPC\t153442\t79660\t1\t0\t-13845336|0|1|2|4S1oMezTh9X2EeEGxa6LaP|61|null|bj|null\tPDPS000000056439\t1239141\tWAP\txxl\t-\t0\t-\t-\n" +
+                            "接"));
+                }
+            }catch(Exception e){
+                System.out.println(e);
+            }
+        }
+    }
+
     public void destory(){
         producer.close();
     }
@@ -103,7 +121,7 @@ class KafkaConsumer{
             for(int i = 0;i<message.length()-1;i++){
                 char t1 = message.charAt(i+1);
                 char t = message.charAt(i);
-                if(t1 == '$'){
+                if(t1 == '$'&&t=='\t'){
                     flag = 1;
                     System.out.println("接收到click: "+message);
 //                    System.exit(0);
@@ -116,13 +134,9 @@ class KafkaConsumer{
     }
 }
 
-class gao{
-    public static int a = 10;
-
-}
 
 public class HbaseTest {
-    public static void main(String [] args) {
+    public static void main(String [] args)throws Exception {
 //        FileOutputStream out = new FileOutputStream("/Users/jingwei/test/Storm/ea_realtime_counter/log",true);
 //        out.write("nihao".getBytes("utf-8"));
 //        out.close();
@@ -154,11 +168,24 @@ public class HbaseTest {
 //        System.out.println(jedis.get("test_jingwei"));
 
 
-            Date date = new Date();
-            System.out.println(date);
+//            Date date = new Date();
+//            System.out.println(date);
+//        Date last =new Date();
 //        KafkaClient kafkaClient = new KafkaClient("10.13.3.68:9092","sampleTopic");
-//        kafkaClient.send(Bytes.toBytes("***************"));
-//             KafkaConsumer kafkaConsumer = new KafkaConsumer("pvclkTopic");
+
+//        Thread a = new Thread(kafkaClient.gao);
+//        Thread b = new Thread(kafkaClient.gao);
+//        Thread c = new Thread(kafkaClient.gao);
+//        a.start();
+//        b.start();
+//        c.start();
+//        for(int i = 0;i<100000;i++)
+//        kafkaClient.send(Bytes.toBytes("接收到pv: 2016-06-16 14:58:46.084\t119.250.54.117\t865175023446614\t338c59b3-f4db-4b1a-95a1-a7a5d6258af7\t469513\t5902015829_PINPAI-CPC\t153442\t79660\t1\t0\t-13845336|0|1|2|4S1oMezTh9X2EeEGxa6LaP|61|null|bj|null\tPDPS000000056439\t1239141\tWAP\txxl\t-\t0\t-\t-\n" +
+//                "接收到pv: 2016-06-16 14:58:48.395\t27.200.112.202\t__27.200.112.202_1466059856_0.84980600\t589ec13c-60bc-43c8-bcc3-59d3be3dbe91\t218337\t5489558819_PINPAI-CPC\t95997\t28000\t1\t0\t-1414509117|3|1|1|3rH8szcJddz0yJOOyWS7tW|31|news.sina.cn|bj|null\tPDPS000000057100\t825745\tWAP\txxl\t-\t0\t-\t-"));
+//        a.join();b.join();c.join();
+//        Date now =new Date();
+//        System.out.println(now.getTime() - last.getTime());
+//             KafkaConsumer kafkaConsumer = new KafkaConsumer("failTopic");
 //             kafkaConsumer.consume();
         }
     }

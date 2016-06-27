@@ -86,7 +86,6 @@ public class ClkKafkaSpout implements IRichSpout {
     protected void createConsumer(final Map<String, Object> config) {
         final Properties consumerConfig = createKafkaConfig(config);
         FormatLog formatLog = new FormatLog();
-        consumerConfig.put("zookeeper.connect",formatLog.FaiKafkaSpoutZooKeeperList);
 
         consumerConfig.put("group.id", this._consumer_group_id);
 
@@ -205,7 +204,7 @@ public class ClkKafkaSpout implements IRichSpout {
             Date last = new Date();
             while(true){
                 Date now = new Date();
-                if(now.getTime() - last.getTime() > log.secondAskHbaseTimeMax)
+                if(now.getTime() - last.getTime() > log.firstAskHbaseTimeMax)
                     break;
                 String redisTime="";
                 try {
@@ -222,9 +221,9 @@ public class ClkKafkaSpout implements IRichSpout {
                     break;
                 }
                 Long delt = redisDate.getTime()-logDate.getTime();
-                if(delt>log.secondAskHbaseTimeDlt) break;
+                if(delt>log.firstAskHbaseTimeDlt) break;
                 try {
-                    Thread.sleep(log.secondAskHbaseSleepTime);
+                    Thread.sleep(log.firstAskHbaseSleepTime);
                     askPvExist = askFromHbase.askExist();
                     if(askPvExist){
                         Inserted = true;

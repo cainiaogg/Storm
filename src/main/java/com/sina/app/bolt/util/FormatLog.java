@@ -4,36 +4,41 @@ package com.sina.app.bolt.util;
  * Created by jingwei on 16/6/1.
  */
 public class FormatLog {
-    public static final int clickToHbaseBoltNum = 1;
-    public static final int clickToKafkaBoltNum = 1;
-    public static final int clickFailToKafkaBoltNum = 1;
-    public static final int FailKafkaSpoutNum = 1;
-    public static final int failClickParseBoltNum = 1;
-    public static final int failClickToHbaseBoltNum = 1;
-    public static final int failClickToKafkaBoltNum = 1;
-    public static final int impressionToKafkaBoltNum = 1;
+    public static   int clickToHbaseBoltNum = 1;
+    public static   int clickToKafkaBoltNum = 1;
+    public static   int clickFailToKafkaBoltNum = 1;
+    public static   int FailKafkaSpoutNum = 1;
+    public static   int failClickToHbaseBoltNum = 1;
+    public static   int failClickToKafkaBoltNum = 1;
 
-    public static final String FaiKafkaSpoutZooKeeperList = "10.13.3.68:2181/kafka-yanbing3";
+    public static   int cleanWriteToHbaseTimeout = 1000;
+    public static   int batchWriteToHbaseTimeout = 1000;
+//    public static   int impressionToKafkaBoltNum = 1;
+    public static   String timeSignRedis = "127.0.0.1";
+    public static   int timeSignRedisPort = 6379;
+    public static   String timeSignRedisKey = "shixi_jingwei_time";
 
-    public static final int hashMod = 100;
-    public static final String tableColumnClk = "logclk";
-    public static final String tableColumnPv = "logpv";
-    public static final String brokerList = "10.13.3.68:9092";
-    public static final String failbrokerList = "10.13.3.68:9092";
-    public static final String pvTopic = "pvTopic";
-    public static final String pvclkTopic = "pvclkTopic";
-    public static final String failTopic = "failTopic";
-    public static final int sampleCnt = 100; //chou yang
-    public static final String tableFamily = "cf1"; //lie cu
-    public static final int cntBatch = 2000; // batch count
-    public static final int bufferLen = 30000; //huan chong qu chang du
+    public static   String FaiKafkaSpoutZooKeeperList = "10.13.3.68:2181/kafka-yanbing3";
+    public static   int hashMod = 100;
+    public static   String tableColumnClk = "logclk";
+    public static   String tableColumnPv = "logpv";
+    public static   String brokerList = "10.13.3.68:9092";
+    public static   String failbrokerList = "10.13.3.68:9092";
+    public static   String pvTopic = "pvTopic";
+    public static   String pvclkTopic = "pvclkTopic";
+    public static   String failTopic = "failTopic";
+    public static   int sampleCnt = 100; //chou yang
+    public static   String tableFamily = "cf1"; //lie cu
+    public static   int cntBatch = 2000; // batch count
+    public static   int bufferLen = 30000; //huan chong qu chang du
 
-    public static final int firstAskHbaseTimeMax = 1000*60;
-    public static final int firstAskHbaseTimeDlt = 1000*60*5;
-    public static final int firstAskHbaseSleepTime = 1000*2;
-    public static final int secondAskHbaseTimeMax = 1000*60;
-    public static final int secondAskHbaseTimeDlt = 1000*60*5;
-    public static final int secondAskHbaseSleepTime = 1000*2;
+    public static   int firstAskHbaseTimeMax = 1000*60;
+    public static   int firstAskHbaseTimeDlt = 1000*60*5;
+    public static   int firstAskHbaseSleepTime = 1000*2;
+    public static   int secondAskHbaseTimeMax = 1000*60;
+    public static   int secondAskHbaseTimeDlt = 1000*60*5;
+    public static   int secondAskHbaseSleepTime = 1000*2;
+
 
     public int getHash(String uuid){
         int valHash = 0;

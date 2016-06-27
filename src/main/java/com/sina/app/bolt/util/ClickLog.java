@@ -19,8 +19,6 @@ public class ClickLog extends FormatLog{
 	public String uuid;
 	public String logclkVal;
 	public String timeSign;
-	public static final String tableCloumn = "logclk"; //lie
-	public String toKafka;
 	public ClickLog(String log) {
 		String[] segs = StringUtils.splitPreserveAllTokens(log, '\t');
 		if (segs.length < clickLength) {
@@ -43,22 +41,5 @@ public class ClickLog extends FormatLog{
 			return ;
 		}
 		logclkVal = log;
-	}
-	public boolean getFromHbase(){
-		OperateTable table = new OperateTable();
-		Get get = new Get(Bytes.toBytes(uuid));
-		get.addColumn(Bytes.toBytes(tableFamily),Bytes.toBytes(tableCloumn));
-		try{
-			Result result = table.table.get(get);
-			if(result.isEmpty()) return false;
-			for(KeyValue kv:result.list()){
-				toKafka = new String(kv.getValue());
-			}
-			return true;
-		}catch(Exception e){
-			LOG.error("getFromHbase error {}",e);
-			return false;
-		}
-
 	}
 }

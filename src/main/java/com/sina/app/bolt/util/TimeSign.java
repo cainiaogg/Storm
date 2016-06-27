@@ -9,17 +9,18 @@ import static org.apache.hadoop.hbase.ipc.RpcClient.LOG;
  */
 public class TimeSign {
     private Jedis jedis;
+    FormatLog formatLog = new FormatLog();
     public TimeSign(){
         try {
-            jedis = new Jedis("127.0.0.1", 6379);
+            jedis = new Jedis(formatLog.timeSignRedis, formatLog.timeSignRedisPort);
         }catch(Exception e){
             LOG.error("connect redis error{}",e);
         }
     }
     public String getTime()throws Exception{
-        return jedis.get("shixi_jingwei_time");
+        return jedis.get(formatLog.timeSignRedisKey);
     }
     public void updateTime(String tmpTime)throws Exception{
-        jedis.set("shixi_jingwei_time",tmpTime);
+        jedis.set(formatLog.timeSignRedisKey,tmpTime);
     }
 }

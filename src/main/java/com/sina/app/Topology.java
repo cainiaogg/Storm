@@ -29,8 +29,8 @@ public class Topology {
 				topoConfig.impressionSpoutNum);
 		builder.setBolt("impressionParseBolt", new ImpressionBolt(), topoConfig.impressionBoltNum)
 				.shuffleGrouping("impressionSpout");
-		builder.setBolt("impressionToKafkaBolt",new ToKafkaBolt(formatLog.brokerList,formatLog.pvTopic),formatLog.impressionToKafkaBoltNum)
-				.shuffleGrouping("impressionParseBolt");
+//		builder.setBolt("impressionToKafkaBolt",new ToKafkaBolt(formatLog.brokerList,formatLog.pvTopic),formatLog.impressionToKafkaBoltNum)
+//				.shuffleGrouping("impressionParseBolt");
 
 		builder.setSpout("clickSpout",
 				new ClkKafkaSpout(topoConfig.kafkaClickTopic, topoConfig.KafkaClickGroup),
@@ -49,17 +49,6 @@ public class Topology {
 				.shuffleGrouping("FailKafkaSpout","GETH");
 		builder.setBolt("failClickToKafkaBolt",new ToKafkaBolt(formatLog.brokerList,formatLog.pvclkTopic),formatLog.failClickToKafkaBoltNum)
 				.shuffleGrouping("FailKafkaSpout","GETK");
-
-
-
-//		builder.setBolt("intervalCountBolt", new IntervalCountBolt(topoConfig.intervalCountSeconds),
-//				topoConfig.intervalCountBoltNum)
-//				.fieldsGrouping("impressionParseBolt", new Fields("psid", "infos", "order"))
-//				.fieldsGrouping("clickParseBolt", new Fields("psid", "infos", "order"));
-
-//		builder.setBolt("outputBolt", new OutputBolt(), topoConfig.getInt(Constant.OUTPUT_BOLT_NUM))
-//				.shuffleGrouping("intervalCountBolt");
-		
 		return builder;
 	}
 

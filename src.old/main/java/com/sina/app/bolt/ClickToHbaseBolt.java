@@ -14,6 +14,7 @@ import java.security.PrivilegedExceptionAction;
 
 import static org.apache.hadoop.hbase.ipc.RpcClient.LOG;
 
+import java.util.Date;
 import java.util.Map;
 /**
  * Created by jingwei on 16/6/14.
@@ -47,7 +48,7 @@ public class ClickToHbaseBolt implements IRichBolt {
     }
     @Override
     public void execute(Tuple input){
-        String entry = new String((byte[]) input.getValue(0));
+        String entry = new String(input.getValue(0).toString());
         ClickLog log = new ClickLog(entry);
         try {
             write.produce(log.uuid, log.logclkVal, log.timeSign);
@@ -59,6 +60,7 @@ public class ClickToHbaseBolt implements IRichBolt {
     }
     @Override
     public void cleanup() {
+        write.clean();
         try{
             writeThread.join();
         }catch(InterruptedException e){

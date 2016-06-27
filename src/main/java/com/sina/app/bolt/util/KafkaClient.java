@@ -26,6 +26,7 @@ public class KafkaClient {
     public boolean send(byte[] message){
         try{
             producer.send(new KeyedMessage<String, byte[]>(topic,message));
+            return true;
         } catch (kafka.common.MessageSizeTooLargeException e) {
             LOG.error("Message too large: len=" + message.length);
         } catch (kafka.common.FailedToSendMessageException e) {
