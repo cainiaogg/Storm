@@ -30,7 +30,7 @@ public class ImpressionBolt implements IRichBolt {
 	private OutputCollector collector;
 	private writeToHbase write;
 	private Thread writeThread;
-	private FormatLog formatLog= new FormatLog();
+	private FormatLog formatLog;
 	public ImpressionBolt() {
 	}
 
@@ -43,6 +43,7 @@ public class ImpressionBolt implements IRichBolt {
 	@Override
 	public void prepare(Map stormConf, TopologyContext context,
 			OutputCollector collector) {
+		formatLog = new FormatLog();
 		Object ret = null;
 		try{
 			ret = UserGroupInformation.createRemoteUser("hero").doAs(new PrivilegedExceptionAction<Object>() {

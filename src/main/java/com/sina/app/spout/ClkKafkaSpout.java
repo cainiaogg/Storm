@@ -174,7 +174,7 @@ public class ClkKafkaSpout implements IRichSpout {
     public void deactivate() {
         _failHandler.deactivate();
     }
-    public void Delay(byte[] message,final KafkaMessageId nextId){
+    public void Delay(byte[] message,final KafkaMessageId nextId)throws InterruptedException{
         String entry = new String(message);
         AskFromHbase askFromHbase;
         String[] clickLogs = StringUtils.split(entry,"\n");
@@ -251,7 +251,11 @@ public class ClkKafkaSpout implements IRichSpout {
                 if (message == null) {
                     throw new IllegalStateException("no pending message for next id " + nextId);
                 }
-                Delay(message,nextId);
+                try {
+                    Delay(message, nextId);
+                }catch (InterruptedException e){
+                    LOG.error("{}",e);
+                }
                 LOG.debug("emitted kafka message id {} ({} bytes payload)", nextId, message.length);
             }
         }

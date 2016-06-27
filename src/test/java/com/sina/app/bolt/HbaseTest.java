@@ -185,8 +185,8 @@ public class HbaseTest {
 //        a.join();b.join();c.join();
 //        Date now =new Date();
 //        System.out.println(now.getTime() - last.getTime());
-//             KafkaConsumer kafkaConsumer = new KafkaConsumer("failTopic");
-//             kafkaConsumer.consume();
+             KafkaConsumer kafkaConsumer = new KafkaConsumer("pvclkTopic");
+             kafkaConsumer.consume();
         }
     }
 

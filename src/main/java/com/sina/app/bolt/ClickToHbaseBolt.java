@@ -25,7 +25,7 @@ public class ClickToHbaseBolt implements IRichBolt {
     private writeToHbase write;
     private Thread writeThread;
     private OutputCollector collector;
-    private FormatLog formatlog = new FormatLog();
+    private FormatLog formatlog;
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer){
     }
@@ -33,6 +33,7 @@ public class ClickToHbaseBolt implements IRichBolt {
     @Override
     public void prepare(Map stormConf, TopologyContext context,
                         OutputCollector collector) {
+        formatlog = new FormatLog();
         Object ret = null;
         try{
             ret = UserGroupInformation.createRemoteUser("hero").doAs(new PrivilegedExceptionAction<Object>() {
